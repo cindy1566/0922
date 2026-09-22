@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邱宥芯 — Minimalist Business Card</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        mono: {
+                            50: '#fcfcfc',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            800: '#27272a',
+                            900: '#18181b',
+                            950: '#09090b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 20s linear infinite',
+                        'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Minimalist Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #fcfcfc;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* Perspective for 3D card tilt and flip */
+        .card-perspective {
+            perspective: 1200px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            top: 0;
+            left: 0;
+            /* 3. 動態時間 0.3 秒，彈性緩動曲線 */
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 1 & 2. 正面卡片 Hover：向上平移 6px 與柔和深層立體陰影 */
+        .card-front:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 45px -10px rgba(0, 0, 0, 0.85), 0 0 25px rgba(255, 255, 255, 0.12);
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* 背面卡片 Hover 效果同步 */
+        .card-back:hover {
+            transform: rotateY(180deg) translateY(-6px);
+            box-shadow: 0 25px 45px -10px rgba(0, 0, 0, 0.85), 0 0 25px rgba(255, 255, 255, 0.12);
+        }
+
+        /* Custom high contrast border grid effect */
+        .bg-grid-pattern {
+            background-size: 24px 24px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+
+        .light .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        }
+
+        /* Subtle noise overlay */
+        .noise-bg {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="min-h-screen w-full flex flex-col justify-between items-center bg-mono-950 text-mono-50 p-4 sm:p-6 md:p-8 relative overflow-x-hidden selection:bg-white selection:text-black">
+
+    <!-- Background Grid Pattern & Decorative Elements -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none opacity-60 z-0"></div>
+    <div class="fixed inset-0 noise-bg pointer-events-none z-0"></div>
+
+    <!-- Top Utility Bar -->
+    <header class="w-full max-w-md flex justify-between items-center z-10 mb-4 sm:mb-6">
+        <div class="flex items-center space-x-2">
+            <span class="inline-block w-2.5 h-2.5 bg-white dark:bg-white rounded-full animate-pulse-subtle"></span>
+            <span class="text-xs font-mono tracking-widest text-neutral-400 uppercase">AVAILABILITY: Q4 2026</span>
+        </div>
+        
+        <!-- Background Color Switcher (3 Modes) -->
+        <div class="flex items-center space-x-1.5 bg-neutral-900/90 border border-neutral-800 p-1.5 rounded-full backdrop-blur-md shadow-lg" id="bgColorSelector">
+            <button data-bg="obsidian" title="純粹黑 (Black)" class="bg-color-btn w-5 h-5 rounded-full bg-[#000000] border-2 border-white transition-all duration-200 transform hover:scale-110 focus:outline-none"></button>
+            <button data-bg="slate" title="霧鋼藍 (Slate)" class="bg-color-btn w-5 h-5 rounded-full bg-[#1e293b] border border-neutral-600 transition-all duration-200 transform hover:scale-110 focus:outline-none"></button>
+            <button data-bg="ash" title="極簡亮灰 (Ash White)" class="bg-color-btn w-5 h-5 rounded-full bg-[#f4f4f5] border border-neutral-600 transition-all duration-200 transform hover:scale-110 focus:outline-none"></button>
+        </div>
+    </header>
+
+    <!-- Main Card Container Centered Layout -->
+    <main class="w-full max-w-md my-auto z-10 card-perspective">
+        <!-- 3D Parallax Container -->
+        <div id="cardWrapper" class="w-full h-[520px] sm:h-[540px] relative transition-transform duration-200 ease-out">
+            
+            <!-- Flippable Card Inner -->
+            <div id="cardInner" class="card-inner w-full h-full">
+                
+                <!-- FRONT OF THE CARD -->
+                <div class="card-front w-full h-full rounded-2xl border-2 border-neutral-800 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-200 bg-mono-950 dark:bg-mono-950 text-mono-50 p-6 sm:p-8 flex flex-col justify-between shadow-2xl transition-colors duration-500 relative overflow-hidden group">
+                    
+                    <!-- Decorative Corner Accents -->
+                    <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-white opacity-80"></div>
+                    <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-white opacity-80"></div>
+                    <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-white opacity-80"></div>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-white opacity-80"></div>
+
+                    <!-- Top Card Header: Brand Serial Number & Flip Button -->
+                    <div class="flex justify-between items-start">
+                        <span class="font-mono text-[10px] tracking-widest text-neutral-400 uppercase">CARD NO // 084-2026</span>
+                        <button id="flipToBackBtn" class="text-xs font-mono tracking-wider flex items-center space-x-1 py-1 px-3 rounded-full border border-neutral-700 hover:border-white bg-neutral-900/50 hover:bg-white hover:text-black transition-all duration-300">
+                            <span>DETAILS</span>
+                            <i class="fa-solid fa-arrow-right-long text-[10px] ml-1"></i>
+                        </button>
+                    </div>
+
+                    <!-- Middle Content: Avatar, Name, Title -->
+                    <div class="flex flex-col items-center text-center my-auto space-y-5">
+                        
+                        <!-- Avatar Placeholder Container -->
+                        <div class="relative group/avatar cursor-pointer" id="avatarClick">
+                            <!-- Outer Rotating Dashed Ring -->
+                            <div class="absolute -inset-2 rounded-full border border-dashed border-neutral-500 opacity-60 group-hover/avatar:rotate-45 transition-transform duration-700"></div>
+                            
+                            <!-- Main Avatar Circle Frame -->
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-white bg-neutral-900 overflow-hidden flex items-center justify-center relative shadow-lg">
+                                <!-- Minimalist Geometric Graphic Avatar Placeholder -->
+                                <svg id="avatarSvg" class="w-full h-full p-2 transition-transform duration-500 group-hover/avatar:scale-110" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="48" fill="#000" stroke="#fff" stroke-width="2"/>
+                                    <!-- Geometric Abstract Face Motif -->
+                                    <path d="M30 40 H45 M55 40 H70" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="37.5" cy="40" r="3" fill="#fff"/>
+                                    <circle cx="62.5" cy="40" r="3" fill="#fff"/>
+                                    <path d="M35 65 Q50 75 65 65" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                    <rect x="47" y="48" width="6" height="10" rx="3" fill="#fff"/>
+                                </svg>
+
+                                <!-- Real Avatar Image Fallback (Hidden by default, easy to replace) -->
+                                <img id="avatarImage" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="邱宥芯 Portrait" class="absolute inset-0 w-full h-full object-cover hidden filter grayscale contrast-125">
+                            </div>
+
+                            <!-- Avatar Switch Badge -->
+                            <div class="absolute -bottom-1 -right-1 bg-white text-black rounded-full p-1.5 shadow-md text-[10px] flex items-center justify-center w-6 h-6 border border-black" title="Click to toggle avatar style">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </div>
+                        </div>
+
+                        <!-- Name & Title Section -->
+                        <div class="space-y-1.5">
+                            <h1 class="text-2xl sm:text-3xl font-black tracking-tight uppercase text-white font-sans">
+                                邱宥芯
+                            </h1>
+                            <p class="text-xs sm:text-sm font-mono tracking-wider text-neutral-400 uppercase">
+                                PRINCIPAL PRODUCT DESIGNER
+                            </p>
+                        </div>
+
+                        <!-- Skill / Specialization Tags -->
+                        <div class="flex flex-wrap justify-center gap-1.5 pt-1 max-w-xs">
+                            <span class="text-[10px] font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300">SYSTEMS</span>
+                            <span class="text-[10px] font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300">UX / UI</span>
+                            <span class="text-[10px] font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300">BRANDING</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Action Buttons Grid -->
+                    <div class="w-full space-y-2.5 pt-2">
+                        <!-- Primary High-Contrast Button -->
+                        <button id="primaryActionBtn" class="w-full py-3 px-4 bg-white hover:bg-neutral-200 text-black font-semibold text-xs sm:text-sm tracking-wider uppercase rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 active:scale-[0.98] shadow-lg group/btn">
+                            <i class="fa-regular fa-paper-plane text-sm transition-transform duration-300 group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5"></i>
+                            <span>GET IN TOUCH</span>
+                        </button>
+
+                        <!-- Secondary Action Row -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="copyEmailBtn" class="py-2.5 px-3 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 hover:border-neutral-600 rounded-xl text-xs font-mono transition-all duration-300 flex items-center justify-center space-x-1.5 active:scale-95">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>COPY EMAIL</span>
+                            </button>
+                            <button id="downloadVcardBtn" class="py-2.5 px-3 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 hover:border-neutral-600 rounded-xl text-xs font-mono transition-all duration-300 flex items-center justify-center space-x-1.5 active:scale-95">
+                                <i class="fa-solid fa-address-card"></i>
+                                <span>SAVE VCARD</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- BACK OF THE CARD -->
+                <div class="card-back w-full h-full rounded-2xl border-2 border-neutral-800 dark:border-neutral-800 bg-mono-950 dark:bg-mono-950 text-mono-50 p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                    
+                    <!-- Decorative Top Grid Bar -->
+                    <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
+                        <span class="font-mono text-[10px] tracking-widest text-neutral-400 uppercase">// CONTACT MATRIX</span>
+                        <button id="flipToFrontBtn" class="text-xs font-mono tracking-wider flex items-center space-x-1 py-1 px-3 rounded-full border border-neutral-700 hover:border-white bg-neutral-900 hover:bg-white hover:text-black transition-all duration-300">
+                            <i class="fa-solid fa-arrow-left-long text-[10px] mr-1"></i>
+                            <span>BACK</span>
+                        </button>
+                    </div>
+
+                    <!-- Contact Information List -->
+                    <div class="space-y-4 my-auto">
+                        
+                        <!-- Email Link -->
+                        <a href="mailto:cindy9508051566@gmail.com" class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 hover:border-neutral-400 transition-colors group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-black border border-neutral-700 flex items-center justify-center text-white">
+                                    <i class="fa-regular fa-envelope text-xs"></i>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-[10px] font-mono text-neutral-400 uppercase">EMAIL</p>
+                                    <p class="text-xs sm:text-sm font-mono text-white group-hover:underline">cindy9508051566@gmail.com</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-neutral-500 group-hover:text-white transition-colors"></i>
+                        </a>
+
+                        <!-- Phone Link -->
+                        <a href="tel:+886912345678" class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 hover:border-neutral-400 transition-colors group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-black border border-neutral-700 flex items-center justify-center text-white">
+                                    <i class="fa-solid fa-mobile-screen-button text-xs"></i>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-[10px] font-mono text-neutral-400 uppercase">PHONE / TELEGRAM</p>
+                                    <p class="text-xs sm:text-sm font-mono text-white group-hover:underline">+886 912 345 678</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-neutral-500 group-hover:text-white transition-colors"></i>
+                        </a>
+
+                        <!-- Location & Portfolio -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                                <p class="text-[10px] font-mono text-neutral-400 uppercase">LOCATION</p>
+                                <p class="text-xs font-mono text-white mt-1">TAIPEI / REMOTE</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                                <p class="text-[10px] font-mono text-neutral-400 uppercase">EXPERIENCE</p>
+                                <p class="text-xs font-mono text-white mt-1">8+ YEARS</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Bottom Section: Social Icons & Mini QR Placeholder -->
+                    <div class="pt-3 border-t border-neutral-800 flex items-center justify-between">
+                        <!-- Social Icons -->
+                        <div class="flex items-center space-x-2">
+                            <a href="#" aria-label="GitHub" class="w-9 h-9 rounded-lg border border-neutral-800 hover:border-white bg-neutral-900 flex items-center justify-center text-neutral-300 hover:text-white transition-colors">
+                                <i class="fa-brands fa-github text-sm"></i>
+                            </a>
+                            <a href="#" aria-label="Dribbble" class="w-9 h-9 rounded-lg border border-neutral-800 hover:border-white bg-neutral-900 flex items-center justify-center text-neutral-300 hover:text-white transition-colors">
+                                <i class="fa-brands fa-dribbble text-sm"></i>
+                            </a>
+                            <a href="#" aria-label="LinkedIn" class="w-9 h-9 rounded-lg border border-neutral-800 hover:border-white bg-neutral-900 flex items-center justify-center text-neutral-300 hover:text-white transition-colors">
+                                <i class="fa-brands fa-linkedin-in text-sm"></i>
+                            </a>
+                            <a href="#" aria-label="X / Twitter" class="w-9 h-9 rounded-lg border border-neutral-800 hover:border-white bg-neutral-900 flex items-center justify-center text-neutral-300 hover:text-white transition-colors">
+                                <i class="fa-brands fa-x-twitter text-sm"></i>
+                            </a>
+                        </div>
+
+                        <!-- Minimal QR Code Graphic -->
+                        <div class="w-10 h-10 bg-white p-1 rounded border border-white flex items-center justify-center" title="Scan to import contact">
+                            <!-- High Contrast Simulated SVG QR Code -->
+                            <svg class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+                                <rect x="2" y="2" width="6" height="6" fill="black"/>
+                                <rect x="16" y="2" width="6" height="6" fill="black"/>
+                                <rect x="2" y="16" width="6" height="6" fill="black"/>
+                                <path d="M10 2h4v4h-4zM2 10h4v4H2zM10 10h4v4h-4zM16 10h6v2h-6zM10 16h2v6h-2zM16 16h4v4h-4z" fill="black"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Custom Minimalist Notification Toast -->
+    <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-black dark:bg-white dark:text-black font-mono text-xs py-2.5 px-5 rounded-full shadow-2xl flex items-center space-x-2.5 opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4 z-50 border border-neutral-200">
+        <i id="toastIcon" class="fa-solid fa-check text-xs"></i>
+        <span id="toastMessage">Action completed successfully.</span>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="w-full max-w-sm bg-mono-950 border-2 border-neutral-700 rounded-2xl p-6 space-y-5 text-mono-50 shadow-2xl relative transform scale-95 transition-transform duration-300" id="contactModalCard">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
+                <h3 class="font-mono text-sm tracking-wider uppercase">// DIRECT MESSAGE</h3>
+                <button id="closeModalBtn" class="text-neutral-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body Form -->
+            <form id="contactForm" class="space-y-3">
+                <div>
+                    <label class="block font-mono text-[10px] text-neutral-400 uppercase mb-1">YOUR NAME</label>
+                    <input type="text" required placeholder="John Doe" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white transition-colors">
+                </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-neutral-400 uppercase mb-1">YOUR EMAIL</label>
+                    <input type="email" required placeholder="john@company.com" class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white transition-colors">
+                </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-neutral-400 uppercase mb-1">PROJECT INQUIRY</label>
+                    <textarea rows="3" required placeholder="Brief description of project requirements..." class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white transition-colors resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-white text-black font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-neutral-200 transition-colors pt-2.5">
+                    SEND TRANSMISSION
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Copyright -->
+    <footer class="w-full max-w-md text-center z-10 mt-4 sm:mt-6">
+        <p class="font-mono text-[10px] text-neutral-500 uppercase tracking-widest">
+            DESIGNED BY 邱宥芯 &copy; 2026
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const cardWrapper = document.getElementById('cardWrapper');
+            const cardInner = document.getElementById('cardInner');
+            const flipToBackBtn = document.getElementById('flipToBackBtn');
+            const flipToFrontBtn = document.getElementById('flipToFrontBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const copyEmailBtn = document.getElementById('copyEmailBtn');
+            const downloadVcardBtn = document.getElementById('downloadVcardBtn');
+            const primaryActionBtn = document.getElementById('primaryActionBtn');
+            const avatarClick = document.getElementById('avatarClick');
+            const avatarSvg = document.getElementById('avatarSvg');
+            const avatarImage = document.getElementById('avatarImage');
+            const toastNotification = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            const contactModal = document.getElementById('contactModal');
+            const contactModalCard = document.getElementById('contactModalCard');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const contactForm = document.getElementById('contactForm');
+
+            // 1. 3D Card Parallax Tilt Interaction
+            let isFlipped = false;
+
+            cardWrapper.addEventListener('mousemove', (e) => {
+                if (isFlipped) return; // Disable heavy tilt during flipped state
+                const rect = cardWrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -12; // Rotate up to 12deg
+                const rotateY = ((x - centerX) / centerX) * 12;
+
+                cardWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            cardWrapper.addEventListener('mouseleave', () => {
+                if (!isFlipped) {
+                    cardWrapper.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                }
+            });
+
+            // 2. Card Flip Handlers
+            function toggleFlip() {
+                isFlipped = !isFlipped;
+                if (isFlipped) {
+                    cardInner.classList.add('is-flipped');
+                    cardWrapper.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                } else {
+                    cardInner.classList.remove('is-flipped');
+                }
+            }
+
+            flipToBackBtn.addEventListener('click', toggleFlip);
+            flipToFrontBtn.addEventListener('click', toggleFlip);
+
+            // 3. Custom Toast Notification System (No Alert)
+            let toastTimeout;
+            function showToast(message, iconClass = 'fa-check') {
+                clearTimeout(toastTimeout);
+                toastMessage.textContent = message;
+                toastIcon.className = `fa-solid ${iconClass} text-xs`;
+                
+                toastNotification.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                toastNotification.classList.add('opacity-100', 'translate-y-0');
+
+                toastTimeout = setTimeout(() => {
+                    toastNotification.classList.remove('opacity-100', 'translate-y-0');
+                    toastNotification.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                }, 3000);
+            }
+
+            // 4. Copy Email Logic
+            const EMAIL_ADDRESS = "cindy9508051566@gmail.com";
+
+            copyEmailBtn.addEventListener('click', () => {
+                // Fallback safe copy for iframe compatibility
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = EMAIL_ADDRESS;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Email address copied to clipboard!');
+                } catch (err) {
+                    showToast('Failed to copy. Email: ' + EMAIL_ADDRESS, 'fa-triangle-exclamation');
+                }
+                document.body.removeChild(tempTextArea);
+            });
+
+            // 5. Download vCard (.vcf)
+            downloadVcardBtn.addEventListener('click', () => {
+                const vCardData = 
+`BEGIN:VCARD
+VERSION:3.0
+FN:邱宥芯
+TITLE:Principal Product Designer
+EMAIL;TYPE=INTERNET,WORK:cindy9508051566@gmail.com
+TEL;TYPE=CELL:+886912345678
+NOTE:Systems, UX/UI, Branding
+END:VCARD`;
+
+                const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Chiu_Yu_Hsin.vcf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast('vCard downloaded successfully!');
+            });
+
+            // 6. Avatar Toggle (Geometric SVG <-> Photo)
+            let isPhotoAvatar = false;
+            avatarClick.addEventListener('click', () => {
+                isPhotoAvatar = !isPhotoAvatar;
+                if (isPhotoAvatar) {
+                    avatarSvg.classList.add('hidden');
+                    avatarImage.classList.remove('hidden');
+                    showToast('Switched to Photo Avatar');
+                } else {
+                    avatarSvg.classList.remove('hidden');
+                    avatarImage.classList.add('hidden');
+                    showToast('Switched to Minimal Graphic Avatar');
+                }
+            });
+
+            // 7. Background Color Selector Logic (3 Themes)
+            const bgThemes = {
+                obsidian: {
+                    bg: '#000000',
+                    text: '#fcfcfc',
+                    name: '純粹黑 (Pitch Black)',
+                    isDark: true
+                },
+                slate: {
+                    bg: '#1e293b',
+                    text: '#ffffff',
+                    name: '霧鋼藍 (Muted Slate)',
+                    isDark: true
+                },
+                ash: {
+                    bg: '#f4f4f5',
+                    text: '#09090b',
+                    name: '極簡亮灰 (Ash White)',
+                    isDark: false
+                }
+            };
+
+            const bgBtns = document.querySelectorAll('.bg-color-btn');
+
+            function setBgTheme(themeKey) {
+                const theme = bgThemes[themeKey];
+                if (!theme) return;
+
+                document.body.style.backgroundColor = theme.bg;
+                document.body.style.color = theme.text;
+
+                if (theme.isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                }
+
+                bgBtns.forEach(btn => {
+                    const key = btn.getAttribute('data-bg');
+                    if (key === themeKey) {
+                        btn.classList.add('border-2', 'border-white', 'scale-110');
+                        btn.classList.remove('border-neutral-600', 'border-neutral-400');
+                    } else {
+                        btn.classList.remove('border-2', 'border-white', 'scale-110');
+                        btn.classList.add('border-neutral-600');
+                    }
+                });
+
+                showToast(`背景已切換為：${theme.name}`);
+            }
+
+            bgBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const bgKey = btn.getAttribute('data-bg');
+                    setBgTheme(bgKey);
+                });
+            });
+
+            // 8. Contact Modal Logic
+            primaryActionBtn.addEventListener('click', () => {
+                contactModal.classList.remove('opacity-0', 'pointer-events-none');
+                contactModalCard.classList.remove('scale-95');
+                contactModalCard.classList.add('scale-100');
+            });
+
+            function closeModal() {
+                contactModal.classList.add('opacity-0', 'pointer-events-none');
+                contactModalCard.classList.remove('scale-100');
+                contactModalCard.classList.add('scale-95');
+            }
+
+            closeModalBtn.addEventListener('click', closeModal);
+            contactModal.addEventListener('click', (e) => {
+                if (e.target === contactModal) closeModal();
+            });
+
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                closeModal();
+                contactForm.reset();
+                showToast('Transmission Sent! I will reply shortly.');
+            });
+        });
+    </script>
+</body>
+</html>
